@@ -1,0 +1,21 @@
+# Normalize line endings
+* text=auto eol=lf
+
+# LaTeX files
+*.tex   text eol=lf
+*.bib   text eol=lf
+*.cls   text eol=lf
+*.sty   text eol=lf
+
+# MATLAB/Python
+*.m     text eol=lf
+*.py    text eol=lf
+
+# Data files — treat as binary to avoid corruption
+*.mat   binary
+*.csv   text eol=lf
+*.xlsx  binary
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.eps   binary
