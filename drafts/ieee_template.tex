@@ -37,7 +37,11 @@
 % Mathematics
 \usepackage{amsmath}          % align, equation, cases, etc.
 \usepackage{amssymb}          % \mathbb, \mathcal, etc.
-\usepackage{amsthm}           % theorem, lemma, proof
+% NOTE: amsthm is intentionally NOT loaded.
+% IEEEtran defines its own 'proof' environment; loading amsthm causes
+% a "proof already defined" conflict. Use \newtheorem below for theorem-type
+% environments, and IEEEtran's built-in proof environment directly.
+% \usepackage{amsthm}  ← DO NOT uncomment
 \usepackage{bm}               % \bm{} for bold math (preferred over \mathbf)
 
 % Graphics
