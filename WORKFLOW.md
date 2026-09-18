@@ -10,17 +10,50 @@ Use a separate **private** repository for manuscript work — do not commit unpu
 
 ---
 
+## Phase 0: Research Intake and Source Review
+
+Before creating or changing the Research Configuration, follow `docs/research_input_protocol.md`.
+
+The user may provide one or more input modes:
+
+- `NOTION_LINK`: Notion page, database, or export link
+- `PPT_OR_PDF_UPLOAD`: uploaded presentation or PDF
+- `LOCAL_DOCUMENT`: Markdown, TXT, DOCX, CSV, or workspace files
+- `DIRECT_INPUT`: research description pasted into chat
+- `MULTI_SOURCE`: any combination of the above
+
+Record the selected modes and every source in `knowledge/source_manifest.md`. Extract and trace the candidate title, topic, objective, method, assumptions, results, contributions, and missing information. Present an integrated summary to the user for review. If a Notion page requires login, mark it `BLOCKED` and request an export or pasted content; never claim that inaccessible content was analyzed.
+
+The following gates are mandatory before manuscript drafting:
+
+1. Source intake is complete.
+2. The integrated research summary has been reviewed by the user.
+3. Conflicts and missing information have been disclosed.
+4. The user explicitly approves generation of the Research Configuration.
+5. The user separately approves `drafts/draft_plan.md`.
+
+No Research Configuration or manuscript draft may be treated as final before these approvals.
+
+---
+
 ## Research Configuration
 
 ```
-Paper Title  : [INSERT PAPER TITLE]
-Topic        : [INSERT SPECIFIC TOPIC — e.g., "Preview control for 6-DOF motion platform"]
-Target Journal: [IEEE TIM / TMECH / TIE / TAC / TRO / RAL
-                 OR Elsevier: Automatica / Mechatronics / CEP / AerospaceJ / AESCTE]
-Journal Family: [IEEE / Elsevier]     ← SET THIS: drives citation format & LaTeX class
-Paper Type   : [Method proposal / Algorithm / System design / Experimental validation / Survey]
-Contribution : [1-3 bullet novelty claims]
+  Paper Title  : Communication-Aware Decentralized Artificial Potential Field Control for Multi-UAV Formation and Collision Avoidance
+  Topic        : Decentralized swarm control of quadrotor UAVs under communication delay, packet loss, and limited connectivity
+  Target Journal: IEEE/ASME Transactions on Mechatronics (IEEE TMECH, provisional)
+  Journal Family: IEEE     ← drives citation format & LaTeX class
+  Paper Type   : Algorithm and experimental validation
+    Research Input: [NOTION_LINK / PPT_OR_PDF_UPLOAD / LOCAL_DOCUMENT / DIRECT_INPUT / MULTI_SOURCE]
+  Contribution :
+     1. A decentralized artificial potential field framework for multi-UAV formation control,
+         obstacle avoidance, and inter-UAV collision avoidance using local position information.
+     2. A communication-aware swarm simulation model that incorporates communication range,
+         neighbor limits, packet-loss probability, transmission period, and stochastic delay.
+     3. A delay-dependent velocity-suppression mechanism and connectivity-aware repulsion strategy,
+         evaluated in simulation and indoor quadrotor experiments for formation and obstacle avoidance.
 ```
+
 
 > ⚠️ **Update this section for each new paper project before any other step.**
 
@@ -177,16 +210,21 @@ After receiving reviewer comments, create `revision/REV{N}/` inside each paper's
 - **NEVER** fabricate or hallucinate references.
 - **ALWAYS** check `knowledge/evidence.md` before searching — avoid duplicate work.
 - Every citation in the draft uses `[EVID:author_year]` tag (converted to IEEE `[N]` in Phase 7).
-- IEEE Xplore and arXiv are discovery tools only — register any paper in `knowledge/evidence.md` (verify DOI/IEEE ID) before citing.
+- IEEE Xplore, ScienceDirect, and arXiv are discovery tools only — register any paper in `knowledge/evidence.md` (verify DOI/IEEE ID and publisher metadata) before citing.
 - Reference PDFs are local only: store under `knowledge/pdf/`; never commit copyrighted PDFs.
+- Use the three-layer search defined in `docs/reference_research_protocol.md`: IEEE Xplore, Elsevier ScienceDirect, and a separate target-journal (TMECH) corpus survey.
 
 **New reference workflow:**
-1. Search (`/search-ieee [query]` or `scripts/search_ieee.py`)
-2. Verify paper exists (DOI / IEEE Xplore ID)
-3. Save PDF → `knowledge/pdf/author_year_keyword.pdf`
-4. Register in `knowledge/evidence.md` with summary, BibTeX key, key contributions
-5. Key papers → `knowledge/summaries/` detailed summary
-6. Then cite in manuscript with `[EVID:author_year]`
+1. Read `docs/reference_research_protocol.md` and check `knowledge/evidence.md`.
+2. Search IEEE Xplore using query families Q1--Q7.
+3. Search Elsevier ScienceDirect with the same query families.
+4. Repeat the relevant queries with a target-journal filter for IEEE/ASME TMECH.
+5. Record candidates separately; do not cite discovery results.
+6. Verify the publisher page plus DOI or IEEE document number.
+7. Save legally accessible PDFs to `knowledge/pdf/author_year_keyword.pdf`.
+8. Register verified papers in `knowledge/evidence.md` with a summary, score, BibTeX key, and claim mapping.
+9. Add only verified records to `drafts/references.bib`.
+10. Summarize key papers in `knowledge/summaries/` and cite them in the manuscript.
 
 ### 2. Novelty & Claim Integrity
 
@@ -260,6 +298,8 @@ Engineering papers live or die by their novelty claims. Before writing, define 2
 ### 8. Draft Plan Mandatory
 
 **NEVER** draft sections without `drafts/draft_plan.md` approval.
+
+**NEVER** begin the draft plan or manuscript from unreviewed source material. Complete Phase 0 source intake and obtain explicit approval of the integrated research summary first.
 
 `draft_plan.md` must include:
 - **Key message** (1–2 sentences)
@@ -378,15 +418,17 @@ Set `--style` flag to match `Journal Family` in Research Configuration.
 ### Phase 1: Setup & Literature
 
 ```
+├── Complete Phase 0 source intake and user review
 ├── Define topic, journal, paper type in WORKFLOW.md Research Configuration
 ├── Check journal scope, page limit, LaTeX template (docs/latex_guide.md)
-├── Search references: /search-ieee [query] or scripts/search_ieee.py
-│   (IEEE Xplore, Google Scholar, arXiv — discovery only)
-├── Import by DOI: /import-doi [doi]
-├── Save PDFs to knowledge/pdf/
-├── Summarize & register in knowledge/evidence.md (docs/citation_guide.md)
-│   Fields: [EVID:id], title, authors, year, venue, BibTeX key, 
-│           contributions, relevance, key equations/results
+├── Follow docs/reference_research_protocol.md
+├── Search IEEE Xplore and Elsevier ScienceDirect by Q1--Q7
+├── Search the target TMECH corpus separately
+├── Verify DOI/IEEE ID and publisher metadata
+├── Save legally accessible PDFs to knowledge/pdf/
+├── Summarize & register verified papers in knowledge/evidence.md
+│   Fields: [EVID:id], title, authors, year, venue, DOI/IEEE ID,
+│           BibTeX key, scores, contributions, relevance, claim mapping
 ├── Key papers → knowledge/summaries/ (detailed 2-3 page summary)
 ├── Define comparison baselines in comparison/baselines.md
 │   (List 3–5 state-of-the-art methods you will compare against)
@@ -439,6 +481,7 @@ Set `--style` flag to match `Journal Family` in Research Configuration.
 ### Phase 3: Draft Plan
 
 ```
+├── Confirm Phase 0 source-intake approval in knowledge/source_manifest.md
 ├── Step 0 (Socratic): Clarify key message with user — ask one question at a time
 │   Q1: What is the single most important result?
 │   Q2: Who is the target reader? (control theorist / systems engineer / practitioner)

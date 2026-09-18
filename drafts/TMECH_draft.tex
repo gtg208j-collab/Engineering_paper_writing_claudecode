@@ -1,0 +1,235 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{siunitx}
+\usepackage{url}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\bp}{\bm{p}}
+\newcommand{\bv}{\bm{v}}
+\newcommand{\bF}{\bm{F}}
+\newcommand{\bx}{\bm{x}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand{\bmu}{\bm{\mu}}
+\newcommand{\bSigma}{\bm{\Sigma}}
+
+\title{Communication-Aware Decentralized Artificial Potential Field Control for Multi-UAV Formation and Collision Avoidance}
+
+\author{Heungsun Son and Hyeondong Oh% 
+\thanks{The authors are with the Ulsan National Institute of Science and Technology (UNIST), Ulsan 44919, Republic of Korea (e-mail: hson@unist.ac.kr; h.oh@unist.ac.kr).}%
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper considers decentralized formation control and collision avoidance for multiple quadrotor unmanned aerial vehicles (UAVs) operating with imperfect inter-vehicle communication. An artificial potential field (APF) controller is formulated to combine formation attraction, obstacle repulsion, and inter-UAV repulsion using locally exchanged position information. The swarm model explicitly represents communication radius, a maximum number of neighbors, packet-loss probability, transmission period, and stochastic transmission delay. To reduce the collision risk caused by stale neighbor information, a delay-dependent velocity-suppression rule is introduced. A connectivity-informed adjustment of the repulsive interaction is also considered for dense formations. The approach is evaluated first in a 25-UAV simulation with a triangular target formation and then in indoor quadrotor tests using motion-capture feedback. In the reported simulation cases, changing the communication rate from 1 to 0.5 packets/s increased the collision count from 6 to 242 and the warning count from 58 to 373. Indoor tests further demonstrate known-obstacle avoidance and circular formation generation. These numerical values are reported from the supplied presentation and require confirmation from raw logs and repeated trials before submission.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Multi-UAV systems, swarm robotics, formation control, collision avoidance, artificial potential field, communication delay.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\label{sec:introduction}
+Multi-UAV systems can execute spatially distributed missions by coordinating several vehicles within a shared operating area. Formation control is a central capability for such systems because it enables a group to move toward a mission region while preserving a prescribed geometric arrangement. The controller must simultaneously account for obstacles, inter-UAV separation, vehicle motion limits, and the availability of neighbor information.
+
+A decentralized architecture distributes sensing, computation, and communication among the vehicles. Such an architecture avoids dependence on a single centralized coordinator, but it makes the control response sensitive to communication range, neighbor selection, packet loss, and information delay. A vehicle can therefore receive an outdated or incomplete estimate of a neighbor position precisely when that information is needed for collision avoidance. A formation controller intended for practical deployment should expose these communication conditions in its model rather than assuming instantaneous and lossless information exchange.
+
+Artificial potential field methods provide a compact way to combine goal attraction and collision repulsion. Their gradient directly generates a motion command, and the attraction field can be shaped to represent a line, circle, grid, polygon, or other formation geometry. However, local minima and degraded neighbor information can produce unsafe or undesirable behavior. This paper studies a communication-aware decentralized APF formulation for quadrotor swarms and examines a velocity-suppression mechanism that reduces motion speed as the estimated communication delay increases.
+
+The contributions of this work are as follows.
+\begin{enumerate}
+    \item A decentralized APF structure combines goal-formation attraction, obstacle repulsion, and inter-UAV repulsion using local position information.
+    \item A swarm simulation model includes communication radius, maximum neighbor count, packet-loss probability, transmission period, and stochastic delay.
+    \item A delay-dependent velocity-suppression rule and a connectivity-informed repulsion adjustment are evaluated for communication-degraded swarm motion.
+    \item Indoor quadrotor experiments demonstrate known-obstacle avoidance and circular formation generation with motion-capture feedback.
+\end{enumerate}
+
+The current draft is based on the supplied technical presentation. Exact literature positioning, formal baseline comparisons, and numerical performance claims are marked for completion because the corresponding reference registry and raw result files are not yet available. Section~II describes the system and communication model. Section~III presents the APF controller. Section~IV describes the simulation study. Section~V presents the indoor experiments. Section~VI discusses limitations and required additional validation, and Section~VII concludes the paper.
+
+\section{Related Work}
+\label{sec:related}
+Formation control for multi-agent systems is commonly organized around leader--follower, virtual-leader, behavior-based, and decentralized architectures. Leader-based structures simplify formation specification but introduce dependence on a designated vehicle or reference trajectory. Decentralized behavior-based approaches instead allow each vehicle to determine an action from local information. The latter structure is attractive for scalable swarm operation, but its performance depends on the quality and timeliness of local communication.
+
+APF control is a behavior-based approach in which attractive and repulsive fields produce a motion direction. The method is computationally simple and can support obstacle avoidance and geometric formation generation within one control expression. A known limitation is the possibility of local minima, especially when multiple obstacles or competing formation constraints create stationary points away from the desired goal.
+
+Communication-aware formation control has to address both network-level and control-level effects. Packet loss removes neighbor information, while delay makes a received position estimate stale. Communication range and neighbor limits further change the interaction graph as the vehicles move. The present work combines these effects in one simulation interface and uses a delay-dependent velocity adjustment as a practical safety mechanism.
+
+\textit{TODO: Add verified references from knowledge/evidence.md. Do not replace this note with references from memory.}
+
+\section{Problem Formulation}
+\label{sec:problem}
+Consider a group of $N$ quadrotor UAVs. The position of UAV $i$ in the horizontal control plane is denoted by $\bp_i \in \mathbb{R}^{2}$, and its commanded velocity is $\bv_i \in \mathbb{R}^{2}$. The low-level flight controller is assumed to track the commanded velocity and attitude setpoints sufficiently quickly for the swarm controller to operate on the position level. The index set is $\mathcal{N}=\{1,\ldots,N\}$.
+
+Each UAV receives position information from a subset of neighboring vehicles. A vehicle $j$ is a communication neighbor of $i$ when
+\begin{equation}
+    \norm{\bp_i-\bp_j} \leq r_{\mathrm{c}},
+    \label{eq:communication_range}
+\end{equation}
+where $r_{\mathrm{c}}$ is the communication radius. If more than $n_{\max}$ vehicles satisfy \eqref{eq:communication_range}, the neighbor set is limited according to distance and communication strength. A transmitted packet can be discarded with probability $p_{\mathrm{loss}}$. The transmission period is denoted by $T_{\mathrm{c}}$, and the delay associated with UAV $i$ is denoted by $D_i$.
+
+The formation objective is to drive each UAV toward a goal position $\bp_{\mathrm{g},i}$ while maintaining safe distances from obstacles and other UAVs. Let $d_{ij}=\norm{\bp_i-\bp_j}$ denote the inter-UAV distance and let $d_{\mathrm{o},ik}$ denote the distance to obstacle $k$. The desired controller should satisfy the following qualitative requirements:
+\begin{enumerate}
+    \item reduce formation-position error;
+    \item avoid obstacle and inter-UAV collisions;
+    \item maintain meaningful behavior when packets are delayed or lost; and
+    \item operate using local information in a decentralized architecture.
+\end{enumerate}
+
+\section{Communication-Aware APF Controller}
+\label{sec:controller}
+\subsection{Artificial Potential Field}
+The velocity command is generated from the negative gradient of a total potential:
+\begin{equation}
+    \bv_i = -\nabla U_i,
+    \qquad
+    U_i = U_i^{\mathrm{A}} + \sum_{k} U_{\mathrm{o},ik}^{\mathrm{R}} + \sum_{j\in\mathcal{N}_i} U_{ij}^{\mathrm{R}},
+    \label{eq:total_potential}
+\end{equation}
+where $U_i^{\mathrm{A}}$ is the formation attraction potential, $U_{\mathrm{o},ik}^{\mathrm{R}}$ is the obstacle-repulsion potential, and $U_{ij}^{\mathrm{R}}$ is the inter-UAV repulsion potential.
+
+For a point obstacle, the repulsive term used in the supplied formulation is
+\begin{equation}
+    U_{\mathrm{o},ik}^{\mathrm{R}} = \frac{Q}{d_{\mathrm{o},ik}^{2}},
+    \label{eq:obstacle_repulsion}
+\end{equation}
+where $Q$ is a repulsion gain. An analogous term is applied to neighboring UAVs using their most recently received positions.
+
+\subsection{Formation Attraction}
+The attraction field is constructed from a bivariate normal field function:
+\begin{equation}
+ f(\bp,\bmu,\bSigma) = \frac{Q}{2\pi\abs{\bSigma}^{1/2}}
+ \exp\left[-\frac{1}{2}(\bp-\bmu)^{\mathsf{T}}\bSigma^{-1}(\bp-\bmu)\right].
+ \label{eq:normal_field}
+\end{equation}
+By placing field components along a desired geometric object, the attraction field can represent a circle, line, grid, polygon, or arbitrary point set. The formation attraction is expressed as
+\begin{equation}
+    U_i^{\mathrm{A}} = \Delta S\nabla f(\bp_i,\bmu,\bSigma),
+    \label{eq:formation_attraction}
+\end{equation}
+where $\Delta S$ controls the shaping of the field. For a circular formation, inner and outer sigmoid boundaries define an annular attraction region. For a line formation, the field components are rotated so that the resulting gradient points toward the line segment.
+
+\subsection{Communication-Aware Velocity Suppression}
+When communication delay increases, the controller may act on stale neighbor positions. The supplied study therefore scales the velocity command using a delay-dependent suppression ratio:
+\begin{equation}
+    R_i = R_{\min} + \frac{1-R_{\min}}{\kappa(D_i+1)},
+    \label{eq:suppression}
+\end{equation}
+where $R_{\min}$ is the minimum suppression ratio and $\kappa$ is a tunable delay parameter. The resulting command is
+\begin{equation}
+    \bv_i^{\mathrm{cmd}} = R_i\bv_i.
+    \label{eq:scaled_velocity}
+\end{equation}
+The exact parameterization and saturation behavior must be specified from the implementation before publication. Equation~\eqref{eq:suppression} is retained as a draft representation of the relationship shown in the presentation.
+
+\subsection{Connectivity-Informed Repulsion}
+The communication graph provides a local indication of swarm density. When the estimated connectivity or neighbor density indicates that vehicles are concentrated, the repulsive interaction can be increased to enlarge the separation margin. This mechanism is potentially useful for collision avoidance, but a fully decentralized implementation cannot generally access the complete global connectivity state. The final manuscript must therefore distinguish between local connectivity information and any centralized connectivity quantity used only for analysis.
+
+\begin{algorithm}
+\caption{Local communication-aware APF update}
+\label{alg:apf}
+\begin{algorithmic}[1]
+\State Receive local obstacle data and the most recent neighbor packets.
+\State Construct the formation attraction field for $\bp_{\mathrm{g},i}$.
+\State Add obstacle and neighbor repulsive fields.
+\State Compute $\bv_i=-\nabla U_i$.
+\State Estimate the available delay $D_i$ and compute $R_i$ from \eqref{eq:suppression}.
+\State Command $\bv_i^{\mathrm{cmd}}=R_i\bv_i$ subject to vehicle limits.
+\State Transmit the local position at the next communication instant.
+\end{algorithmic}
+\end{algorithm}
+
+\section{Simulation Study}
+\label{sec:simulation}
+\subsection{Baseline Scenario}
+The baseline scenario contains 25 quadrotor UAVs that first travel together toward a mission region and then form a triangular pattern. The formation is specified by the vertices $(100,100)$, $(130,100)$, and $(115,125)$ in the simulation plane. The reported baseline parameters include a communication radius of \SI{10}{m}, a nominal communication rate of 10 packets/s, a collision radius of \SI{1.5}{m}, and no communication delay. The baseline presentation reports zero collisions for this setting.
+
+\begin{table}[t]
+\caption{Simulation parameters reported in the supplied presentation.}
+\label{tab:simulation_parameters}
+\centering
+\begin{tabular}{lll}
+\toprule
+Parameter & Symbol & Reported value \\
+\midrule
+Number of UAVs & $N$ & 25 \\
+Communication radius & $r_{\mathrm{c}}$ & \SI{10}{m} \\
+Nominal communication rate & $1/T_{\mathrm{c}}$ & 10 packets/s \\
+Collision radius & -- & \SI{1.5}{m} \\
+Simulation time step & $\Delta t$ & \SI{0.01}{s} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Communication Conditions}
+Packet loss is modeled probabilistically during data exchange. Delay is modeled as a random quantity centered on an average delay, with a Gaussian distribution used in the simulation description. Communication range and maximum neighbor count restrict the interaction graph. The presentation compares communication periods of 1 and 0.5 packets/s; the latter produces more collisions and warnings in the reported example. These observations must be reproduced from raw logs before being stated as general performance conclusions.
+
+In the reported examples, the 1 packets/s case produced 6 collisions and 58 warnings, whereas the 0.5 packets/s case produced 242 collisions and 373 warnings. Thus, the lower communication rate was associated with substantially more collision and warning events in these cases. These are presentation-reported single-case results, not population estimates; the raw logs, trial duration, warning definition, and repeated-trial statistics must be added before making a general performance claim.
+
+Table~\ref{tab:communication_results} records the additional communication measurements shown in the presentation. The values vary with the configured communication parameter $\mathrm{CW}_{\min}$ and formation type. The source does not provide enough information to establish the number of trials or the exact network configuration for each row.
+
+\begin{table}[t]
+\caption{Communication results reported in the supplied presentation.}
+\label{tab:communication_results}
+\centering
+\begin{tabular}{llrrr}
+\toprule
+Formation & $\mathrm{CW}_{\min}$ & Loss (\%) & Avg. delay ($\mu$s) & Max. delay ($\mu$s) \\
+\midrule
+Cluster & 15 & 4.45 & 167 & 2,031 \\
+Cluster & 511 & 4.20 & 680 & 8,270 \\
+Cluster & 1023 & 4.16 & 1,130 & 13,439 \\
+Circle & 15 & 2.84 & 146 & 18,090 \\
+Circle & 511 & 2.61 & 287 & 48,603 \\
+Circle & 1023 & 2.52 & 429 & 48,796 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For the delay study, the controller is compared with and without velocity suppression. The presentation indicates that severe delay can increase collision risk and that speed reduction can mitigate this risk. The plotted suppression ratio decreases from 1 at zero delay toward approximately 0.33 at 5 s in the shown example. The current draft does not claim a percentage improvement because the source material does not provide a complete numerical table, trial duration, or repeated-trial confidence interval.
+
+\subsection{Required Evaluation Metrics}
+The final simulation study should report formation-position error, minimum inter-UAV distance, minimum obstacle distance, collision count, warning count, communication packet-loss rate, average delay, maximum delay, and computation time. The presentation supplies initial collision, warning, packet-loss, and delay values, which are included above as source-reported observations. Each numerical statement in the final manuscript must be linked to a CSV result file and a clearly defined trial condition.
+
+\section{Indoor Experiments}
+\label{sec:experiments}
+\subsection{System Architecture}
+The indoor test system consists of quadrotor flight-control hardware, a companion computer, a MATLAB ground-control station, and a motion-capture system. Motion-capture data are passed through the motion-capture data bus to the companion computer. The potential-field module generates velocity setpoints, and the autopilot interface converts the command mode into the corresponding flight-control command.
+
+The command manager includes takeoff and potential-field modes. In the takeoff mode, the vehicle is commanded to maintain its current horizontal position and reach an altitude of \SI{1}{m}. In the potential-field mode, the velocity setpoint is computed from the APF controller.
+
+\subsection{Obstacle Avoidance}
+For the obstacle-avoidance test, a known obstacle is placed at the origin. The vehicle is commanded toward the position NED $(1.3,0,-1.0)$, which requires motion across the obstacle location. The reported steering velocity is 0.3 and the obstacle repulsion gain is $Q=0.2$. The supplied indoor-test images and control interface show the vehicle executing the commanded obstacle-avoidance maneuver. A trajectory, minimum obstacle distance, and trial outcome log are still required for quantitative validation.
+
+\subsection{Circular Formation}
+The circular-formation test commands the vehicles to form a circle at an altitude of \SI{1}{m} with a target radius of \SI{2}{m}. The supplied presentation shows indoor photographs and motion-capture visualizations of vehicles arranged around the target circle. The result supports a qualitative formation-generation observation. The final paper must add trajectory data, radial error, angular spacing error, settling time, and the number of vehicles used in each trial.
+
+\section{Discussion}
+\label{sec:discussion}
+The presented system combines a simple local control law with an explicit communication impairment model. This makes it suitable for early evaluation of how packet exchange conditions influence formation behavior. The velocity-suppression rule is also operationally interpretable: stale information reduces the commanded speed, increasing the time available for the next update.
+
+Several limitations must be addressed. First, APF methods can exhibit local minima and may fail to produce a globally safe path in complex obstacle arrangements. Second, the delay-suppression relationship requires parameter tuning and a clear definition of the delay estimate. Third, the connectivity-based repulsion mechanism can require information that is unavailable in a strictly decentralized network. Finally, the current evidence does not include systematic comparisons with alternative formation controllers, ablation trials, or uncertainty analysis.
+
+Before submission, the study should include at least one reproducible baseline, repeated trials across communication conditions, a parameter-sensitivity analysis, and quantitative experimental metrics. The contribution claims should then be reduced to those supported by the resulting data.
+
+\section{Conclusion}
+\label{sec:conclusion}
+This paper presented a communication-aware decentralized APF formulation for multi-UAV formation and collision avoidance. The method combines geometric formation attraction with obstacle and inter-UAV repulsion, while the simulation model represents communication range, neighbor limits, packet loss, transmission period, and stochastic delay. In the presentation-reported communication-rate examples, reducing the rate from 1 to 0.5 packets/s increased collision events from 6 to 242 and warning events from 58 to 373. The presentation also reports formation-dependent packet-loss and delay measurements and shows indoor demonstrations of known-obstacle avoidance and circular formation generation. These results require raw-data recovery, repeated trials, and baseline comparisons before they can support general performance claims.
+
+The current manuscript is a working draft rather than a submission-ready paper. The next required steps are to register verified literature, provide raw simulation and experimental data, define baselines and metrics, reproduce the reported results, and replace all qualitative statements with traceable quantitative evidence where appropriate.
+
+\section*{Acknowledgment}
+The authors thank the contributors to the indoor flight-test platform and data-collection system. Funding information should be added after confirmation by the authors.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
