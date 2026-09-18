@@ -1,0 +1,492 @@
+% =============================================================================
+% IEEEtran Journal Template
+% Engineering Paper Writing Workflow v1.1.0
+%
+% TARGET JOURNALS — select one in \documentclass options:
+%   TIE   : IEEE Transactions on Industrial Electronics
+%   TIM   : IEEE Transactions on Instrumentation and Measurement
+%   TMECH : IEEE/ASME Transactions on Mechatronics
+%   TAC   : IEEE Transactions on Automatic Control
+%   TRO   : IEEE Transactions on Robotics
+%   RAL   : IEEE Robotics and Automation Letters
+%
+% JOURNAL-SPECIFIC NOTES:
+%   TIE   : Max 8 pages (regular), color figures OK in online version
+%   TIM   : Max 10 pages, measurement focus required in abstract
+%   TMECH : Max 10 pages (regular), must include system implementation
+%   TAC   : Max 8 pages (regular), 4 pages (technical notes)
+%           Use \documentclass[technote]{IEEEtran} for technical notes
+%   TRO   : Max 12 pages, video attachment recommended
+%   RAL   : Max 8 pages, presented at ICRA or IROS, strict deadline
+%
+% COMPILE SEQUENCE:
+%   pdflatex ieee_template.tex
+%   bibtex   ieee_template
+%   pdflatex ieee_template.tex
+%   pdflatex ieee_template.tex
+% =============================================================================
+
+% ---------------- Document Class --------------------------------------------
+% Options: journal (default) | technote | peerreview | peerreviewca
+% Two-column is the default for journal; comment out 'twocolumn' if needed
+\documentclass[journal]{IEEEtran}
+% For TAC technical notes:  \documentclass[technote]{IEEEtran}
+% For peer-review version:  \documentclass[journal,peerreview]{IEEEtran}
+
+% ---------------- Packages --------------------------------------------------
+% Mathematics
+\usepackage{amsmath}          % align, equation, cases, etc.
+\usepackage{amssymb}          % \mathbb, \mathcal, etc.
+\usepackage{amsthm}           % theorem, lemma, proof
+\usepackage{bm}               % \bm{} for bold math (preferred over \mathbf)
+
+% Graphics
+\usepackage{graphicx}         % \includegraphics
+\usepackage{epstopdf}         % convert .eps to .pdf automatically
+% \usepackage{subfig}         % sub-figures (use if needed)
+
+% Tables
+\usepackage{booktabs}         % \toprule, \midrule, \bottomrule
+\usepackage{multirow}         % \multirow{}
+
+% Algorithms
+\usepackage{algorithm}
+\usepackage{algpseudocode}    % \Procedure, \State, \For, \If, etc.
+
+% Units (SI)
+\usepackage{siunitx}          % \SI{9.81}{\meter\per\second\squared}
+
+% Hyperlinks (comment out for final camera-ready if journal disallows)
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+
+% Cross-referencing
+\usepackage{cleveref}         % \cref{fig:block} → "Fig. 1"
+
+% Misc
+\usepackage{cite}             % compact citation ranges [1]–[3]
+\usepackage{url}              % \url{}
+\usepackage{balance}          % balance last page columns (add \balance before \bibliography)
+
+% ---------------- Theorem Environments --------------------------------------
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+
+% ---------------- Custom Commands -------------------------------------------
+% Notation shortcuts — keep consistent with method/notation.md
+\newcommand{\bx}{\bm{x}}          % state vector
+\newcommand{\bu}{\bm{u}}          % control input
+\newcommand{\by}{\bm{y}}          % output
+\newcommand{\bA}{\bm{A}}          % system matrix
+\newcommand{\bB}{\bm{B}}          % input matrix
+\newcommand{\bC}{\bm{C}}          % output matrix
+\newcommand{\bK}{\bm{K}}          % gain matrix
+\newcommand{\bP}{\bm{P}}          % Lyapunov / Riccati matrix
+\newcommand{\bQ}{\bm{Q}}          % weight matrix Q
+\newcommand{\bR}{\bm{R}}          % weight matrix R
+\newcommand{\R}{\mathbb{R}}        % real numbers
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\T}{^{\top}}           % transpose
+
+% =============================================================================
+% DOCUMENT START
+% =============================================================================
+\begin{document}
+
+% ---------------- Title ------------------------------------------------------
+\title{%
+  % TODO: Replace with your paper title
+  % IEEE style: avoid abbreviations in title, no math symbols
+  Insert Your Paper Title Here%
+  % Example: "Robust Preview Control for a Six-Degree-of-Freedom
+  %           Motion Simulation Platform via Horizon Optimization"
+}
+
+% ---------------- Authors ----------------------------------------------------
+% IEEE format: \IEEEauthorblockN for names, \IEEEauthorblockA for affiliation
+\author{%
+  \IEEEauthorblockN{Hungsun Son,~\IEEEmembership{Member,~IEEE,}
+                    and Author B}
+  \IEEEauthorblockA{%
+    Department of Mechanical Engineering,\\
+    Ulsan National Institute of Science and Technology (UNIST),\\
+    Ulsan 44919, Republic of Korea\\
+    Email: hson@unist.ac.kr%
+  }%
+  % Add more authors:
+  % \and
+  % \IEEEauthorblockN{Author C}
+  % \IEEEauthorblockA{Affiliation C \\ email@c.edu}
+}
+
+% Marks are for: Member, Senior Member, Fellow, Life Member, Life Fellow
+% If not a member: remove ,~\IEEEmembership{...}
+
+% ---------------- Running Header (for peer-review) --------------------------
+% \markboth{IEEE TRANSACTIONS ON ..., VOL. XX, NO. X, MONTH YEAR}%
+% {Son \MakeLowercase{\textit{et al.}}: Short Paper Title}
+
+\maketitle
+
+% ---------------- Abstract --------------------------------------------------
+\begin{abstract}
+% IEEE abstract guidelines:
+%   - 150–250 words
+%   - No citations, no math notation if avoidable, no abbreviations on first use
+%   - State: (1) problem/motivation, (2) proposed method, (3) key results, (4) significance
+%
+% TIM note: First sentence must mention the measurement/instrumentation aspect.
+%
+% Structure template:
+%   [Problem]  This paper addresses the problem of ...
+%   [Gap]      Existing approaches suffer from ... because ...
+%   [Method]   We propose a ... that ...
+%   [Result]   Experiments/simulations demonstrate ... improvement of X% over ...
+%   [Impact]   The proposed method enables ...
+%
+TODO: Write abstract here. (150--250 words)
+\end{abstract}
+
+% ---------------- Index Terms -----------------------------------------------
+\begin{IEEEkeywords}
+% 4–8 keywords; use IEEE Taxonomy terms where possible
+% https://www.ieee.org/publications/services/thesaurus.html
+keyword1, keyword2, keyword3, keyword4
+\end{IEEEkeywords}
+
+% =============================================================================
+% SECTION I — INTRODUCTION
+% =============================================================================
+\section{Introduction}
+\label{sec:intro}
+% IEEE Introduction structure:
+%   Paragraph 1: Problem statement and motivation (why does this matter?)
+%   Paragraph 2–3: Survey of existing work (what has been done?)
+%   Paragraph 4: Gap / limitation of existing work (what is still missing?)
+%   Paragraph 5: Proposed approach and novelty (what do WE do?)
+%   Paragraph 6: Paper organization (brief, e.g., "Section II presents...")
+%
+% Novelty claims go here as explicit statements:
+%   "The main contributions of this paper are as follows:"
+%   1) ...
+%   2) ...
+%   3) ...
+
+TODO: Write introduction.
+
+The main contributions of this paper are summarized as follows:
+\begin{enumerate}
+  \item TODO: Contribution 1 (linked to simulation/comparison result)
+  \item TODO: Contribution 2 (linked to experiment result)
+  \item TODO: Contribution 3 (if applicable)
+\end{enumerate}
+
+The remainder of this paper is organized as follows.
+Section~\ref{sec:related} reviews related work.
+Section~\ref{sec:problem} formulates the problem.
+Section~\ref{sec:method} presents the proposed method.
+Section~\ref{sec:simulation} validates the method via simulation.
+Section~\ref{sec:experiment} presents experimental results.
+Section~\ref{sec:conclusion} concludes the paper.
+
+
+% =============================================================================
+% SECTION II — RELATED WORK (or BACKGROUND / PRELIMINARIES)
+% =============================================================================
+\section{Related Work}
+\label{sec:related}
+% Organize into 2–4 thematic paragraphs. Each paragraph covers one research thread.
+% End with a paragraph that explicitly states the gap that your paper fills.
+% Every statement must be supported by at least one citation [X].
+
+TODO: Write related work.
+
+
+% =============================================================================
+% SECTION III — PROBLEM FORMULATION
+% =============================================================================
+\section{Problem Formulation}
+\label{sec:problem}
+
+\subsection{System Model}
+% Define your system with numbered equations.
+% ALL notation must appear in method/notation.md before being used here.
+
+Consider the discrete-time LTI system:
+\begin{equation}
+  \bx_{k+1} = \bA\,\bx_k + \bB\,\bu_k,
+  \label{eq:system}
+\end{equation}
+\begin{equation}
+  \by_k = \bC\,\bx_k,
+  \label{eq:output}
+\end{equation}
+where $\bx_k \in \R^n$ is the state vector, $\bu_k \in \R^m$ is the control input,
+$\by_k \in \R^p$ is the measured output, and
+$\bA \in \R^{n \times n}$, $\bB \in \R^{n \times m}$, $\bC \in \R^{p \times n}$
+are the system, input, and output matrices, respectively.
+
+\begin{assumption}
+  \label{ass:stabilizable}
+  The pair $(\bA, \bB)$ is stabilizable and $(\bA, \bC)$ is detectable.
+\end{assumption}
+
+\subsection{Control Objective}
+% State the control objective as a formal optimization or requirement.
+
+TODO: State the control objective.
+
+The control objective is to find a control law $\bu_k = \pi(\bx_k)$ such that:
+\begin{equation}
+  \min_{\bu_k} \sum_{k=0}^{\infty}
+    \left( \bx_k\T \bQ\,\bx_k + \bu_k\T \bR\,\bu_k \right),
+  \label{eq:objective}
+\end{equation}
+subject to \eqref{eq:system}--\eqref{eq:output} and Assumption~\ref{ass:stabilizable}.
+
+
+% =============================================================================
+% SECTION IV — PROPOSED METHOD
+% =============================================================================
+\section{Proposed Method}
+\label{sec:method}
+
+\subsection{Overview}
+% One paragraph overview with a block diagram (Fig.~\ref{fig:block}).
+
+TODO: Describe method overview.
+
+\cref{fig:block} illustrates the overall architecture of the proposed system.
+
+\begin{figure}[htbp]
+  \centering
+  % Replace with your actual figure file (PDF or EPS preferred for IEEEtran)
+  % \includegraphics[width=\columnwidth]{figures/block_diagram.pdf}
+  \rule{\columnwidth}{0.4pt}   % placeholder — remove when figure is ready
+  \vspace{1em}
+  \caption{Block diagram of the proposed control system.
+           TODO: Add meaningful caption.}
+  \label{fig:block}
+\end{figure}
+
+\subsection{Algorithm Design}
+% Present the core algorithm.
+
+TODO: Describe the algorithm.
+
+\begin{algorithm}[htbp]
+  \caption{TODO: Algorithm name}
+  \label{alg:proposed}
+  \begin{algorithmic}[1]
+    \Require Initial state $\bx_0$, matrices $\bQ$, $\bR$, horizon $N$
+    \Ensure Control sequence $\{\bu_k\}_{k=0}^{N-1}$
+    \State Solve Riccati equation to obtain $\bP$
+    \State Compute gain $\bK = (\bR + \bB\T\bP\bB)^{-1}\bB\T\bP\bA$
+    \For{$k = 0, 1, \ldots, N-1$}
+      \State $\bu_k \gets -\bK\,\bx_k$
+      \State $\bx_{k+1} \gets \bA\,\bx_k + \bB\,\bu_k$
+    \EndFor
+    \State \Return $\{\bu_k\}$
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{Stability Analysis}
+% Theorem + Proof is standard for TAC/Automatica papers.
+% For TIE/TIM, stability can be stated as a proposition if space is limited.
+
+\begin{theorem}
+  \label{thm:stability}
+  Under Assumption~\ref{ass:stabilizable}, the closed-loop system
+  \eqref{eq:system} with the proposed control law is asymptotically stable.
+\end{theorem}
+\begin{proof}
+  TODO: Provide proof.
+  Consider the Lyapunov function $V(\bx_k) = \bx_k\T\bP\,\bx_k > 0$.
+  Then $\Delta V = V(\bx_{k+1}) - V(\bx_k) = \ldots < 0$. \qed
+\end{proof}
+
+\begin{remark}
+  TODO: Add remark if needed.
+\end{remark}
+
+
+% =============================================================================
+% SECTION V — SIMULATION
+% =============================================================================
+\section{Simulation Results}
+\label{sec:simulation}
+% MANDATORY: simulation/simulation_plan.md must exist before this section is written.
+% All numbers in this section must match simulation/ CSV files exactly.
+
+\subsection{Simulation Setup}
+% Describe: software, hardware (CPU/GPU), simulation parameters, comparison baselines.
+
+Simulations were conducted in MATLAB/Simulink (R202Xb) on a
+\SI{3.2}{\giga\hertz} Intel Core i9 processor.
+\cref{tab:sim_params} lists the simulation parameters.
+
+\begin{table}[htbp]
+  \caption{Simulation Parameters}
+  \label{tab:sim_params}
+  \centering
+  % IEEEtran: caption ABOVE table, use \hline or booktabs
+  \begin{tabular}{lll}
+    \toprule
+    Parameter & Symbol & Value \\
+    \midrule
+    Sampling period  & $T_s$ & \SI{10}{\milli\second} \\
+    Simulation time  & $T$   & \SI{10}{\second} \\
+    TODO: Add parameters & & \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Comparison with Baselines}
+% Compare with at least 2 baselines. Report quantitative metrics (RMSE, IAE, settling time, etc.)
+% Numbers MUST match comparison/baseline_comparison.csv
+
+\cref{tab:comparison} summarizes the performance comparison.
+The proposed method achieves an RMSE of TODO~deg,
+which is TODO\% lower than the PID baseline and TODO\% lower than Method~B \cite{TODO_ref}.
+
+\begin{table}[htbp]
+  \caption{Performance Comparison}
+  \label{tab:comparison}
+  \centering
+  \begin{tabular}{lccc}
+    \toprule
+    Method & RMSE [deg] & Settling Time [s] & Overshoot [\%] \\
+    \midrule
+    PID (baseline)    & TODO & TODO & TODO \\
+    Method B \cite{TODO_ref} & TODO & TODO & TODO \\
+    \textbf{Proposed} & \textbf{TODO} & \textbf{TODO} & \textbf{TODO} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  % \includegraphics[width=\columnwidth]{figures/sim_response.pdf}
+  \rule{\columnwidth}{0.4pt}
+  \vspace{1em}
+  \caption{Simulation results: time-domain response comparison.
+           (a) Proposed. (b) PID. (c) Method B.}
+  \label{fig:sim_response}
+\end{figure}
+
+
+% =============================================================================
+% SECTION VI — EXPERIMENTAL RESULTS
+% =============================================================================
+\section{Experimental Results}
+\label{sec:experiment}
+% MANDATORY: experiment/experimental_plan.md must exist before this section is written.
+% All numbers in this section must match experiment/ data files exactly.
+
+\subsection{Experimental Setup}
+% Describe: hardware platform, sensors, actuators, data acquisition, safety limits.
+
+TODO: Describe the experimental setup.
+
+\begin{figure}[htbp]
+  \centering
+  % \includegraphics[width=\columnwidth]{figures/experimental_setup.jpg}
+  \rule{\columnwidth}{0.4pt}
+  \vspace{1em}
+  \caption{Experimental setup. TODO: Add meaningful caption.}
+  \label{fig:exp_setup}
+\end{figure}
+
+\subsection{Results}
+% Present results in the same format as simulation for easy comparison.
+% Report mean ± standard deviation over repeated trials.
+
+TODO: Present experimental results.
+
+
+% =============================================================================
+% SECTION VII — DISCUSSION (optional, often merged into result sections)
+% =============================================================================
+% \section{Discussion}
+% \label{sec:discussion}
+% Discuss: Why does the proposed method work? Limitations? Future work hints?
+
+
+% =============================================================================
+% SECTION VIII — CONCLUSION
+% =============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+% Structure:
+%   Paragraph 1: Restate the problem and the proposed approach (2–3 sentences)
+%   Paragraph 2: Summarize key results with numbers
+%   Paragraph 3: Limitations and future work
+
+TODO: Write conclusion.
+
+In this paper, we proposed TODO.
+Simulation and experimental results demonstrated TODO\% improvement
+in TODO metric compared to existing baselines.
+Future work will investigate TODO.
+
+
+% =============================================================================
+% ACKNOWLEDGMENT
+% =============================================================================
+\section*{Acknowledgment}
+% Standard funding acknowledgment format for Korean NRF/IITP grants:
+% "This work was supported by [funding body] under Grant [number]."
+This work was supported by the National Research Foundation of Korea (NRF)
+under Grant NRF-TODO.
+% K-UAM example:
+% This work was supported by the Korea Research Institute for defense
+% Technology planning and advancement (KRIT) under Grant KRIT-TODO
+% (K-UAM Grand Challenge).
+
+
+% =============================================================================
+% APPENDIX (if needed)
+% =============================================================================
+% \appendices
+% \section{Proof of Theorem~\ref{thm:stability}}
+% \label{app:proof}
+% TODO: Extended proof here.
+
+
+% =============================================================================
+% REFERENCES
+% =============================================================================
+% IEEEtran reference style:
+%   - Numeric, sorted by order of appearance: [1], [2], ...
+%   - Use \bibliographystyle{IEEEtran}
+%   - Run: bibtex ieee_template
+
+% Uncomment before last page to balance two-column layout:
+% \balance
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+% =============================================================================
+% BIOGRAPHY (required for some IEEE journals, optional for others)
+% Skip for initial submission; add for final version if required.
+% =============================================================================
+% \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{photo_son.jpg}}]{Hungsun Son}
+%   received the B.S., M.S., and Ph.D. degrees in mechanical engineering
+%   from TODO University, in TODO, TODO, and TODO, respectively.
+%   He is currently an Associate Professor with the Department of Mechanical
+%   Engineering, Ulsan National Institute of Science and Technology (UNIST),
+%   Ulsan, Republic of Korea.
+%   His research interests include motion platforms, control systems,
+%   and urban air mobility (UAM).
+% \end{IEEEbiography}
+
+\end{document}
+% =============================================================================
+% END OF TEMPLATE
+% =============================================================================
